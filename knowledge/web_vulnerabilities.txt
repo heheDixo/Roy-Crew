@@ -1,0 +1,41 @@
+WEB APPLICATION VULNERABILITIES - Penetration Testing Reference
+
+SQL INJECTION:
+- Test parameters with: ' OR '1'='1
+- Tools: sqlmap -u "http://target/page?id=1" --dbs
+- Common endpoints: login forms, search fields, URL parameters
+- Detection: error messages containing SQL syntax
+
+XSS (Cross-Site Scripting):
+- Reflected XSS: inject in URL parameters
+- Stored XSS: inject in forms that save to database
+- Test payload: <script>alert(1)</script>
+- Tools: ffuf for parameter fuzzing
+
+DIRECTORY TRAVERSAL:
+- Test: ../../../../etc/passwd
+- Tools: gobuster, ffuf with traversal wordlists
+- Common locations: file parameters, include parameters
+
+COMMAND INJECTION:
+- Test: ; ls -la or | whoami
+- Common in: ping utilities, file conversion tools
+
+HTTP METHODS:
+- Test with: httpx -method PUT,DELETE,PATCH
+- Dangerous methods: PUT (file upload), DELETE, TRACE
+
+INFORMATION DISCLOSURE:
+- Check: /robots.txt, /sitemap.xml, /.git/, /.env
+- Headers: Server, X-Powered-By, X-AspNet-Version
+- Tools: httpx -silent -status-code -title -tech-detect
+
+AUTHENTICATION BYPASS:
+- Default credentials: admin/admin, admin/password
+- Tools: hydra for brute force
+- JWT weaknesses: none algorithm, weak secrets
+
+COMMON WORDLISTS FOR FUZZING:
+- Directories: /usr/share/wordlists/dirb/common.txt
+- Parameters: /usr/share/wordlists/seclists/Discovery/Web-Content/
+- Subdomains: /usr/share/wordlists/seclists/Discovery/DNS/

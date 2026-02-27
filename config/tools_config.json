@@ -1,0 +1,30 @@
+{
+  "nmap": {
+    "description": "Network discovery and port scanning",
+    "command": "nmap",
+    "args_template": "{flags} {target}",
+    "default_flags": "-sT -sV",
+    "requires_root": false
+  },
+  "gobuster": {
+    "description": "Directory brute-forcing",
+    "command": "gobuster",
+    "args_template": "dir -u {target} -w {wordlist} {flags}",
+    "default_flags": "-t 50",
+    "requires_root": false
+  },
+  "ffuf": {
+    "description": "Fast web fuzzer",
+    "command": "ffuf",
+    "args_template": "-u {target}/FUZZ -w {wordlist} {flags}",
+    "default_flags": "-c",
+    "requires_root": false
+  },
+  "httpx": {
+    "description": "HTTP probing toolkit",
+    "command": "/opt/homebrew/bin/httpx",
+    "args_template": "-u {target} {flags}",
+    "default_flags": "-silent -status-code",
+    "requires_root": false
+  }
+}
