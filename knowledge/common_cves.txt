@@ -1,0 +1,92 @@
+CRITICAL CVEs - PENETRATION TESTING REFERENCE
+==============================================
+
+CVE-2024-1709 - ConnectWise ScreenConnect Authentication Bypass and RCE
+Severity: Critical
+Affected: ConnectWise ScreenConnect prior to 23.9.8
+Type: Authentication Bypass + Path Traversal
+Description: Unauthenticated attackers can create admin users and execute remote code.
+Detection: Check ScreenConnect version, probe /SetupWizard.aspx on exposed instances
+Exploitation: Send crafted requests to setup wizard endpoint to create admin account
+Tools: httpx to detect exposed instance, metasploit module available
+
+CVE-2024-21762 - Fortinet FortiOS SSL VPN RCE
+Severity: Critical
+Affected: FortiOS/FortiProxy SSL VPN 6.x and 7.x before patches
+Type: Out-of-bounds Write
+Description: Unauthenticated RCE via crafted HTTP requests to SSL VPN interface
+Detection: httpx -u https://target/remote/login check for FortiOS headers
+Exploitation: Crafted HTTP request to vulnerable endpoint
+Tools: nuclei has template for this CVE, nmap -sV to detect version
+
+CVE-2023-4966 - Citrix Bleed (NetScaler Information Disclosure)
+Severity: Critical
+Affected: Citrix NetScaler ADC and Gateway before patched builds
+Type: Memory Disclosure
+Description: Session token leakage from memory allowing account hijacking
+Detection: httpx to detect NetScaler, check version in response headers
+Exploitation: Send crafted HTTP GET request, extract session tokens from response
+Tools: httpx for detection, custom script for token extraction
+
+CVE-2023-3519 - Citrix NetScaler Unauthenticated RCE
+Severity: Critical
+Affected: Citrix NetScaler ADC/Gateway pre-patch
+Type: Remote Code Execution
+Description: RCE via crafted HTTP requests on exposed appliances
+Detection: nmap -sV to identify NetScaler, check firmware version
+Exploitation: Crafted HTTP request to NSAPI endpoint
+Tools: nuclei template available, metasploit module available
+
+CVE-2023-34362 - MOVEit Transfer SQL Injection
+Severity: Critical
+Affected: Progress MOVEit Transfer before May 2023 patches
+Type: SQL Injection
+Description: SQL injection via crafted web requests enabling data exfiltration
+Detection: httpx to find MOVEit login page, check /human.aspx endpoint
+Exploitation: sqlmap -u "https://target/guestaccess.aspx" --dbs
+Tools: sqlmap, httpx for detection
+
+CVE-2023-44487 - HTTP/2 Rapid Reset DDoS
+Severity: High
+Affected: Apache, Nginx, IIS, cloud providers with HTTP/2
+Type: Denial of Service
+Description: Protocol flaw allowing large-scale DDoS via stream cancellation
+Detection: httpx -u https://target -http2 check if HTTP/2 enabled
+Exploitation: Send rapid stream reset requests to exhaust server resources
+Tools: httpx with http2 flag for detection
+
+CVE-2023-46604 - Apache ActiveMQ RCE
+Severity: Critical
+Affected: Apache ActiveMQ 5.x before patched releases
+Type: Deserialization
+Description: Arbitrary code execution via OpenWire protocol
+Detection: nmap -p 61616 -sV target checks for ActiveMQ
+Exploitation: metasploit exploit/multi/misc/apache_activemq_rce
+Tools: nmap for detection, metasploit for exploitation
+
+CVE-2023-22515 - Atlassian Confluence Authentication Bypass
+Severity: Critical
+Affected: Confluence Server and Data Center before October 2023
+Type: Improper Authorization
+Description: Unauthenticated admin account creation
+Detection: httpx to find Confluence login, check version at /login.action
+Exploitation: POST request to /setup/setupadministrator.action
+Tools: httpx for detection, nuclei template available
+
+CVE-2023-50164 - Apache Struts 2 File Upload RCE
+Severity: Critical
+Affected: Apache Struts 2 before 2.5.33 and 6.3.0.2
+Type: Path Traversal + RCE
+Description: Path traversal in file upload leading to remote code execution
+Detection: httpx to identify Struts apps, check for .action endpoints
+Exploitation: Upload malicious file with path traversal in filename parameter
+Tools: httpx for detection, nuclei template available, metasploit module
+
+CVE-2024-23897 - Jenkins CLI Arbitrary File Read
+Severity: Critical
+Affected: Jenkins prior to 2.441 and 2.426.2 LTS
+Type: Arbitrary File Read
+Description: Improper input validation allowing file read and credential exposure
+Detection: httpx -u http://target:8080 check for Jenkins dashboard
+Exploitation: jenkins-cli.jar -s http://target help "@/etc/passwd"
+Tools: httpx for detection, jenkins-cli for exploitation

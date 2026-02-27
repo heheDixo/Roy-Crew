@@ -42,3 +42,15 @@ PENTEST PHASES:
 Recon phase      → use -sT --top-ports 1000 -T4
 Service enum     → use -sV -sC on discovered ports
 Full audit       → use -A on confirmed live hosts
+
+
+NSE SCRIPTS (correct syntax):
+--script vuln              : run all vulnerability scripts
+--script default           : same as -sC
+--script smb-vuln-ms17-010 : check EternalBlue
+--script http-enum         : enumerate web paths
+--script banner            : grab service banners
+--script ssl-cert          : check SSL certificate
+
+NEVER use: --script=service/version (does not exist)
+CORRECT version detection flag: -sV (not a script)
