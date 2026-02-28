@@ -1,0 +1,46 @@
+{
+  "servers": [
+    {
+      "name": "FFUF Fuzzer",
+      "params": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "gc-ffuf-mcp"
+        ],
+        "env": {
+          "FFUF_PATH": "/opt/homebrew/bin/ffuf"
+        }
+      },
+      "cache_tools_list": true
+    },
+    {
+      "name": "httpx",
+      "params": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "gc-httpx-mcp"
+        ],
+        "env": {
+          "HTTPX_PATH": "/Users/WIN11/Desktop/Roy-crew/venv/bin/httpx"
+        }
+      },
+      "cache_tools_list": true
+    },
+    {
+      "name": "Nmap Scanner",
+      "params": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "gc-nmap-mcp"
+        ],
+        "env": {
+          "NMAP_PATH": "/opt/homebrew/bin/nmap"
+        }
+      },
+      "cache_tools_list": true
+    }
+  ]
+}

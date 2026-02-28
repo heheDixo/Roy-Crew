@@ -17,6 +17,34 @@ class ToolExecutor:
         return list(self.tools.keys())
 
     def run(self, tool_name: str, target: str, flags: str = None, **kwargs) -> dict:
+        # Try MCP first
+        mcp_result = self._try_mcp(tool_name, target, flags)
+        if mcp_result is not None:
+            return mcp_result
+        # Fall back to subprocess
+        return self._run_subprocess(tool_name, target, flags, **kwargs)
+
+    def _try_mcp(self, tool_name: str, target: str, flags: str) -> dict | None:
+        try:
+            from core.mcp_client import MCPClient
+            mcp = MCPClient()
+
+            if tool_name not in mcp.available_servers():
+                return None
+
+            if tool_name == "nmap":
+                return mcp.run_tool("nmap", "do-nmap", {
+                    "target": target,
+                    "nmap_args": flags or "-sT --top-ports 100"
+                })
+
+            return None
+
+        except Exception as e:
+            print(f"[MCP] Failed for {tool_name}: {e}, falling back to subprocess")
+            return None
+
+    def _run_subprocess(self, tool_name: str, target: str, flags: str = None, **kwargs) -> dict:
         if tool_name not in self.tools:
             return {"success": False, "output": "", "error": f"Unknown tool: {tool_name}"}
 
@@ -26,7 +54,7 @@ class ToolExecutor:
         args_str = tool_config["args_template"].format(
             target=target,
             flags=flags or tool_config.get("default_flags", ""),
-            wordlist=kwargs.get("wordlist", "")
+            wordlist=kwargs.get("wordlist") or tool_config.get("default_wordlist", "")
         )
 
         cmd = [command] + [a for a in args_str.split() if a]
@@ -36,7 +64,7 @@ class ToolExecutor:
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=120
+                timeout=300
             )
 
             if tool_name == "nmap" and (
@@ -57,6 +85,6 @@ class ToolExecutor:
         except FileNotFoundError:
             return {"success": False, "output": "", "error": f"'{command}' not found. Is it installed and in PATH?"}
         except subprocess.TimeoutExpired:
-            return {"success": False, "output": "", "error": f"Tool '{tool_name}' timed out after 120s"}
+            return {"success": False, "output": "", "error": f"Tool '{tool_name}' timed out after 300s"}
         except Exception as e:
             return {"success": False, "output": "", "error": str(e)}

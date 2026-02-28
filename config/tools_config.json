@@ -11,6 +11,7 @@
     "command": "gobuster",
     "args_template": "dir -u {target} -w {wordlist} {flags}",
     "default_flags": "-t 50",
+    "default_wordlist": "knowledge/wordlists/common.txt",
     "requires_root": false
   },
   "ffuf": {

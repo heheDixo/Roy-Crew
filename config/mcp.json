@@ -1,0 +1,13 @@
+{
+  "servers": [
+    {
+      "name": "Nmap Scanner",
+      "params": {
+        "command": "npx",
+        "args": ["-y", "gc-nmap-mcp"],
+        "env": {"NMAP_PATH": "/opt/homebrew/bin/nmap"}
+      },
+      "cache_tools_list": true
+    }
+  ]
+}
