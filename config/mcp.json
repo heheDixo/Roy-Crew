@@ -15,20 +15,6 @@
       "cache_tools_list": true
     },
     {
-      "name": "httpx",
-      "params": {
-        "command": "npx",
-        "args": [
-          "-y",
-          "gc-httpx-mcp"
-        ],
-        "env": {
-          "HTTPX_PATH": "/opt/homebrew/bin/httpx"
-        }
-      },
-      "cache_tools_list": true
-    },
-    {
       "name": "Nmap Scanner",
       "params": {
         "command": "npx",
