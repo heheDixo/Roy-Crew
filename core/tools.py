@@ -2,6 +2,7 @@
 import json
 import subprocess
 from pathlib import Path
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -24,6 +25,8 @@ class ToolExecutor:
         return self._run_subprocess(tool_name, target, flags, **kwargs)
 
     def _try_mcp(self, tool_name: str, target: str, flags: str, **kwargs) -> dict | None:
+        if not os.environ.get("USE_MCP"):
+            return None
         try:
             from core.mcp_client import MCPClient
             mcp = MCPClient()
@@ -38,9 +41,11 @@ class ToolExecutor:
              return None
 
             if tool_name == "nmap":
+                nmap_args = flags or "-sT --top-ports 100"
+                nmap_args = nmap_args.replace("-sV", "").strip()
                 return mcp.run_tool(server_name, "do-nmap", {
                     "target": target,
-                    "nmap_args": flags or "-sT --top-ports 100"
+                    "nmap_args": nmap_args
                 })
 
             if tool_name == "ffuf":

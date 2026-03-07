@@ -69,6 +69,7 @@ def run_chat_mode():
 
                 analysis_context = rag.retrieve(output)
                 analysis = llm.inject_tool_result(tool, output, analysis_context)
+                print(f"[DEBUG] analysis type={analysis.get('type')} content_len={len(analysis.get('content', ''))}")
                 ui.print_analysis(analysis.get("content", "No analysis returned."))
 
             elif not result["success"]:

@@ -1,31 +1,35 @@
 # main.py
-import sys
 from ui import terminal as ui
 from modes.chat import run_chat_mode
+from modes.agent import run_agent_mode
 
 
-def select_mode() -> str:
-    ui.console.print("\n[bold]Select Mode:[/bold]")
-    ui.console.print("  [cyan]1[/cyan] → Chat Mode")
-    ui.console.print("  [dim]2 → Workflow Mode (coming soon)[/dim]")
-    ui.console.print("  [dim]3 → Agent Mode (coming soon)[/dim]\n")
-
-    choice = ui.console.input("[bold green]Select> [/bold green]").strip()
-    return choice
+def select_mode():
+    ui.console.print("\nSelect Mode:")
+    ui.console.print("  1 → Chat Mode")
+    ui.console.print("  2 → Agent Mode (Autonomous Pentest)")
+    ui.console.print("  3 → Exit\n")
+    return input("Select> ").strip()
 
 
 def main():
     ui.print_banner()
 
-    mode = select_mode()
+    while True:
+        choice = select_mode()
 
-    if mode == "1" or mode == "":
-        run_chat_mode()
-    else:
-        ui.console.print("[dim]Mode not available yet. Starting Chat Mode.[/dim]")
-        run_chat_mode()
+        if choice == "1":
+            run_chat_mode()
+        elif choice == "2":
+            run_agent_mode()
+        elif choice == "3":
+            ui.console.print("[dim]Goodbye.[/dim]")
+            break
+        else:
+            ui.console.print("[dim]Invalid choice.[/dim]")
 
-    ui.console.print("\n[bold red]Session ended.[/bold red]")
+        # After mode exits, show menu again
+        ui.console.print("\n[dim]Returning to main menu...[/dim]")
 
 
 if __name__ == "__main__":
