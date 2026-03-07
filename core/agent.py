@@ -103,7 +103,6 @@ Respond ONLY with JSON in this exact format:
         return {}
 
     def _update_state(self, analysis: dict):
-        """Update agent state from LLM analysis."""
         if analysis.get("open_ports"):
             self.state.open_ports.extend(analysis["open_ports"])
             self.state.open_ports = list(set(self.state.open_ports))
@@ -116,16 +115,20 @@ Respond ONLY with JSON in this exact format:
             self.state.tech_stack = list(set(self.state.tech_stack))
 
         if analysis.get("directories"):
-            self.state.directories.extend(analysis["directories"])
+            new_dirs = analysis["directories"]
+            self.state.directories = list(set(self.state.directories + new_dirs))
 
         if analysis.get("findings"):
+            existing = [f.finding for f in self.state.findings]
             for f in analysis["findings"]:
-                self.state.findings.append(Finding(
-                    tool="agent",
-                    finding=f.get("finding", ""),
-                    severity=f.get("severity", "info"),
-                    details=f.get("details", "")
-                ))
+                if f.get("finding") not in existing:
+                    self.state.findings.append(Finding(
+                        tool="agent",
+                        finding=f.get("finding", ""),
+                        severity=f.get("severity", "info"),
+                        details=f.get("details", "")
+                    ))
+                    existing.append(f.get("finding"))
 
     def _phase_recon(self):
         """Phase 1 — Recon: identify open ports and services."""

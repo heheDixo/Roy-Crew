@@ -11,7 +11,7 @@ def run_agent_mode():
     target = input("Enter target (IP or domain): ").strip()
     
     if not target or target.lower() == "quit":
-        ui.console.print("[red]No target provided. OR Cancelled [/red]")
+        ui.console.print("[red]No target provided. OR Cancelled[/red]")
         return
 
     ui.console.print(f"\n[yellow]Starting autonomous pentest on {target}...[/yellow]\n")
