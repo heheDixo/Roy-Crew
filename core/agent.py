@@ -40,6 +40,15 @@ class PentestAgent:
 
     def run(self) -> dict:
         """Main agent loop — runs full pentest autonomously."""
+        # Validate target before doing anything
+        if not self._validate_target(self.target):
+            return {
+                "target": self.target,
+                "error": "Scan cancelled - no authorization confirmed",
+                "phases_completed": [],
+                "findings": []
+            }
+
         print(f"\n[Agent] Starting autonomous pentest on {self.target}")
         print("[Agent] Phase: RECON\n")
 
@@ -51,6 +60,28 @@ class PentestAgent:
             self._phase_enumeration()
 
         return self._generate_report()
+
+    def _validate_target(self, target: str) -> bool:
+        import ipaddress
+
+        # Allow private IPs automatically
+        try:
+            ip = ipaddress.ip_address(target)
+            if ip.is_private:
+                return True
+        except ValueError:
+            pass
+
+        # Known safe targets
+        safe_targets = ["testphp.vulnweb.com", "vulnweb.com", "localhost"]
+        if any(safe in target for safe in safe_targets):
+            return True
+
+        # Public target — require confirmation
+        print(f"\n⚠️  WARNING: {target} appears to be a public target.")
+        print("Scanning without authorization is illegal.")
+        confirm = input("Type 'I CONFIRM I HAVE AUTHORIZATION' to proceed: ").strip()
+        return confirm == "I CONFIRM I HAVE AUTHORIZATION"
 
     def _run_tool_with_retry(self, tool: str, target: str, flags: str = None, **kwargs) -> dict:
         """Run tool with retry logic."""
@@ -93,7 +124,6 @@ Respond ONLY with JSON in this exact format:
         response = self.llm.chat(prompt, rag_context=context)
         try:
             content = response.get("content", "{}")
-            # Extract JSON from response
             import re
             match = re.search(r'\{.*\}', content, re.DOTALL)
             if match:
@@ -156,14 +186,12 @@ Respond ONLY with JSON in this exact format:
         print("\n[Agent] Phase: SCANNING")
         self.state.phase = "scanning"
 
-        # Check if web ports are open
         web_ports = [p for p in self.state.open_ports if p in [80, 443, 8080, 8443, 8000]]
 
         if not web_ports:
             print("[Agent] No web ports found, skipping web scanning")
             return
 
-        # Build target URL
         web_target = self.target
         if not web_target.startswith("http"):
             port = 443 if 443 in web_ports else 80
@@ -220,5 +248,4 @@ Respond ONLY with JSON in this exact format:
             ],
             "stop_reason": self.state.stop_reason
         }
-
         return report

@@ -5,6 +5,8 @@ from ui import terminal as ui
 
 
 def run_agent_mode():
+
+    
     ui.console.print("\n[bold red]⚡ AGENT MODE — Autonomous Pentest[/bold red]\n")
     ui.console.print("[dim]Agent will autonomously run recon → scanning → enumeration[/dim]\n")
 
