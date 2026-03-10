@@ -28,4 +28,19 @@
     "default_flags": "-silent -status-code",
     "requires_root": false
   }
+  ,
+  "katana": {
+    "description": "Fast web crawler for endpoint discovery",
+    "command": "/opt/homebrew/bin/katana",
+    "args_template": "-u {target} {flags}",
+    "default_flags": "-d 3 -silent",
+    "requires_root": false
+  },
+  "nuclei": {
+    "description": "Template-based vulnerability scanner",
+    "command": "/opt/homebrew/bin/nuclei",
+    "args_template": "-u {target} {flags}",
+    "default_flags": "-severity critical,high,medium -no-interactsh -silent",
+    "requires_root": false
+  }
 }

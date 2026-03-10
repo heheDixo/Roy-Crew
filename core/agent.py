@@ -258,55 +258,50 @@ Respond ONLY with JSON in this exact format:
             print(f"[Agent] Katana failed: {result.get('error', 'unknown')} — continuing")
 
     def _phase_vuln_scan(self):
-        """Phase 5 — Vuln Scan: Katana URLs piped into Nuclei."""
+        """Phase 5 — Vuln Scan: Nuclei on URLs already crawled by Katana."""
         print("\n[Agent] Phase: VULN SCAN")
         self.state.phase = "vuln_scan"
 
-        web_target = f"http://{self.target}"
-
-        print(f"[Agent] Running katana | nuclei pipeline on {web_target}...")
-    
         import subprocess
+
+    # Use URLs already discovered by _phase_crawl — no duplicate Katana run
+        urls = self.state.crawled_urls
+        if not urls:
+            web_target = f"http://{self.target}"
+            urls = [web_target]
+            print(f"[Agent] No crawled URLs — falling back to base target")
+
+            print(f"[Agent] Running nuclei on {len(urls)} URLs...")
+
         try:
-        # Step 1 — Katana crawl
-            katana = subprocess.run(
-                ["/opt/homebrew/bin/katana", "-u", web_target, "-d", "3", "-silent"],
-                capture_output=True, text=True, timeout=120
-         )
-            urls = [u.strip() for u in katana.stdout.splitlines() if u.strip()]
-            self.state.crawled_urls = list(set(urls))
-            print(f"[Agent] Katana found {len(urls)} URLs")
-
-            if not urls:
-                print("[Agent] No URLs from Katana — skipping Nuclei")
-                return
-
-        # Step 2 — Nuclei on discovered URLs
             nuclei = subprocess.run(
                 ["/opt/homebrew/bin/nuclei",
-                    "-severity", "critical,high,medium",
-                    "-no-interactsh",
-                    "-silent",
-                    "-rl", "3",
-                    "-timeout", "30",
-                    "-max-host-error", "3"],
-                input="\n".join(urls),
+                "-severity", "critical,high,medium",
+                "-no-interactsh",
+                "-silent",
+                "-rl", "3",
+                "-timeout", "30",
+                "-max-host-error", "3"],
+                input="\n".join(urls[:20]),
                 capture_output=True, text=True, timeout=180
             )
             output = nuclei.stdout + nuclei.stderr
-            print(f"[Agent] Nuclei raw output:\n{output[:500]}")
-        
+            print(f"[Agent] Nuclei output:\n{output[:500]}")
             self.state.completed_tasks.append("nuclei_scan")
 
             if output.strip():
                 analysis = self._analyze_with_llm("nuclei", output)
                 self._update_state(analysis)
                 print(f"[Agent] Total findings: {len(self.state.findings)}")
+            else:
+                print("[Agent] Nuclei returned no findings")
 
         except subprocess.TimeoutExpired:
-            print("[Agent] Vuln scan timed out — partial results saved")
+            print("[Agent] Nuclei timed out — partial results saved")
+            self.state.completed_tasks.append("nuclei_scan")
         except Exception as e:
-            print(f"[Agent] Vuln scan error: {e}")
+                print(f"[Agent] Nuclei error: {e}")
+        
     def _generate_report(self) -> dict:
         """Generate final pentest report."""
         print("\n[Agent] Generating report...")
