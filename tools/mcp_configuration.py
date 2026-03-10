@@ -296,9 +296,9 @@ def main():
     
     # Check if mcp.json exists and load it
     mcp_config = {"servers": []}
-    if os.path.exists("mcp.json"):
+    if os.path.exists("config/mcp.json"):
         try:
-            with open("mcp.json", 'r') as f:
+            with open("config/mcp.json", 'r') as f:
                 mcp_config = json.load(f)
                 print(f"{Fore.GREEN}Loaded existing mcp.json with {len(mcp_config.get('servers', []))} server configurations.{Style.RESET_ALL}")
         except:
@@ -433,7 +433,7 @@ def main():
             mcp_config["servers"] = configured_servers
         
         # Save to mcp.json
-        with open("mcp.json", 'w') as f:
+        with open("config/mcp.json", 'w') as f:
             json.dump(mcp_config, f, indent=2)
         
         print(f"\n{Fore.GREEN}Configuration saved to mcp.json with {len(mcp_config['servers'])} server configurations.{Style.RESET_ALL}")

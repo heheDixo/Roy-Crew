@@ -27,6 +27,34 @@
         }
       },
       "cache_tools_list": true
+    },
+    {
+      "name": "Katana",
+      "params": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "gc-katana-mcp"
+        ],
+        "env": {
+          "KATANA_PATH": "/opt/homebrew/bin/katana"
+        }
+      },
+      "cache_tools_list": true
+    },
+    {
+      "name": "Nuclei Scanner",
+      "params": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "gc-nuclei-mcp"
+        ],
+        "env": {
+          "NUCLEI_PATH": "/opt/homebrew/bin/nuclei"
+        }
+      },
+      "cache_tools_list": true
     }
   ]
 }

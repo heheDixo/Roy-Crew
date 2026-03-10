@@ -23,6 +23,7 @@ class AgentState:
     services: dict = field(default_factory=dict)
     tech_stack: list = field(default_factory=list)
     directories: list = field(default_factory=list)
+    crawled_urls: list = field(default_factory=list)
     completed_tasks: list = field(default_factory=list)
     findings: list = field(default_factory=list)
     should_stop: bool = False
@@ -40,7 +41,6 @@ class PentestAgent:
 
     def run(self) -> dict:
         """Main agent loop — runs full pentest autonomously."""
-        # Validate target before doing anything
         if not self._validate_target(self.target):
             return {
                 "target": self.target,
@@ -52,19 +52,21 @@ class PentestAgent:
         print(f"\n[Agent] Starting autonomous pentest on {self.target}")
         print("[Agent] Phase: RECON\n")
 
-        # PTT execution
+        # PTT execution — 5 phases
         self._phase_recon()
         if not self.state.should_stop:
             self._phase_scanning()
         if not self.state.should_stop:
             self._phase_enumeration()
+        if not self.state.should_stop:
+            self._phase_crawl()        # NEW — Katana
+        if not self.state.should_stop:
+            self._phase_vuln_scan()    # NEW — Nuclei
 
         return self._generate_report()
 
     def _validate_target(self, target: str) -> bool:
         import ipaddress
-
-        # Allow private IPs automatically
         try:
             ip = ipaddress.ip_address(target)
             if ip.is_private:
@@ -72,12 +74,10 @@ class PentestAgent:
         except ValueError:
             pass
 
-        # Known safe targets
         safe_targets = ["testphp.vulnweb.com", "vulnweb.com", "localhost"]
         if any(safe in target for safe in safe_targets):
             return True
 
-        # Public target — require confirmation
         print(f"\n⚠️  WARNING: {target} appears to be a public target.")
         print("Scanning without authorization is illegal.")
         confirm = input("Type 'I CONFIRM I HAVE AUTHORIZATION' to proceed: ").strip()
@@ -106,7 +106,7 @@ Current state: {json.dumps({
 })}
 
 Tool output:
-{output[:1500]}
+{output[:2000]}
 
 Respond ONLY with JSON in this exact format:
 {{
@@ -114,10 +114,11 @@ Respond ONLY with JSON in this exact format:
     "services": {{"80": "http", "443": "https"}},
     "tech_stack": ["PHP 5.6", "Nginx 1.19"],
     "directories": ["/admin", "/uploads"],
+    "crawled_urls": ["http://target.com/login.php", "http://target.com/search.php"],
     "findings": [
-        {{"finding": "PHP 5.6 end of life", "severity": "high", "details": "upgrade required"}}
+        {{"finding": "SQL Injection in login.php", "severity": "critical", "details": "parameter uname is injectable"}}
     ],
-    "next_action": "run_httpx",
+    "next_action": "run_nuclei",
     "reasoning": "why this next action"
 }}"""
 
@@ -147,6 +148,11 @@ Respond ONLY with JSON in this exact format:
         if analysis.get("directories"):
             new_dirs = analysis["directories"]
             self.state.directories = list(set(self.state.directories + new_dirs))
+
+        # Store crawled URLs for Nuclei to use
+        if analysis.get("crawled_urls"):
+            self.state.crawled_urls.extend(analysis["crawled_urls"])
+            self.state.crawled_urls = list(set(self.state.crawled_urls))
 
         if analysis.get("findings"):
             existing = [f.finding for f in self.state.findings]
@@ -227,6 +233,80 @@ Respond ONLY with JSON in this exact format:
             self._update_state(analysis)
             print(f"[Agent] Found directories: {self.state.directories}")
 
+    def _phase_crawl(self):
+        """Phase 4 — Crawl: discover all endpoints and parameters using Katana."""
+        print("\n[Agent] Phase: CRAWL")
+        self.state.phase = "crawl"
+
+        web_target = f"http://{self.target}"
+        if self.target.startswith("http"):
+            web_target = self.target
+
+        print(f"[Agent] Running katana crawler on {web_target}...")
+        result = self._run_tool_with_retry(
+            "katana", web_target,
+            flags="-d 3 -silent -jc"   # depth 3, silent, JS crawling enabled
+        )
+        self.state.completed_tasks.append("katana_crawl")
+
+        if result["success"]:
+            analysis = self._analyze_with_llm("katana", result["output"])
+            self._update_state(analysis)
+            print(f"[Agent] Crawled {len(self.state.crawled_urls)} URLs")
+        else:
+            # Katana failure is non-fatal — Nuclei can still run on base target
+            print(f"[Agent] Katana failed: {result.get('error', 'unknown')} — continuing")
+
+    def _phase_vuln_scan(self):
+        """Phase 5 — Vuln Scan: Katana URLs piped into Nuclei."""
+        print("\n[Agent] Phase: VULN SCAN")
+        self.state.phase = "vuln_scan"
+
+        web_target = f"http://{self.target}"
+
+        print(f"[Agent] Running katana | nuclei pipeline on {web_target}...")
+    
+        import subprocess
+        try:
+        # Step 1 — Katana crawl
+            katana = subprocess.run(
+                ["/opt/homebrew/bin/katana", "-u", web_target, "-d", "3", "-silent"],
+                capture_output=True, text=True, timeout=120
+         )
+            urls = [u.strip() for u in katana.stdout.splitlines() if u.strip()]
+            self.state.crawled_urls = list(set(urls))
+            print(f"[Agent] Katana found {len(urls)} URLs")
+
+            if not urls:
+                print("[Agent] No URLs from Katana — skipping Nuclei")
+                return
+
+        # Step 2 — Nuclei on discovered URLs
+            nuclei = subprocess.run(
+                ["/opt/homebrew/bin/nuclei",
+                    "-severity", "critical,high,medium",
+                    "-no-interactsh",
+                    "-silent",
+                    "-rl", "3",
+                    "-timeout", "30",
+                    "-max-host-error", "3"],
+                input="\n".join(urls),
+                capture_output=True, text=True, timeout=180
+            )
+            output = nuclei.stdout + nuclei.stderr
+            print(f"[Agent] Nuclei raw output:\n{output[:500]}")
+        
+            self.state.completed_tasks.append("nuclei_scan")
+
+            if output.strip():
+                analysis = self._analyze_with_llm("nuclei", output)
+                self._update_state(analysis)
+                print(f"[Agent] Total findings: {len(self.state.findings)}")
+
+        except subprocess.TimeoutExpired:
+            print("[Agent] Vuln scan timed out — partial results saved")
+        except Exception as e:
+            print(f"[Agent] Vuln scan error: {e}")
     def _generate_report(self) -> dict:
         """Generate final pentest report."""
         print("\n[Agent] Generating report...")
@@ -238,6 +318,7 @@ Respond ONLY with JSON in this exact format:
             "services": self.state.services,
             "tech_stack": self.state.tech_stack,
             "directories": self.state.directories,
+            "crawled_urls": self.state.crawled_urls[:50],  # cap at 50 for report
             "findings": [
                 {
                     "finding": f.finding,
@@ -248,4 +329,14 @@ Respond ONLY with JSON in this exact format:
             ],
             "stop_reason": self.state.stop_reason
         }
+
+        try:
+            from core.report_generator import PentestReportGenerator
+            gen = PentestReportGenerator(report)
+            pdf_path = gen.generate()
+            print(f"[Agent] PDF report saved to {pdf_path}")
+            report["pdf_path"] = pdf_path
+        except Exception as e:
+            print(f"[Agent] PDF generation failed: {e}")
+
         return report
