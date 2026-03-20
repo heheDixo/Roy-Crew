@@ -3,14 +3,14 @@
     "description": "Network discovery and port scanning",
     "command": "nmap",
     "args_template": "{flags} {target}",
-    "default_flags": "-sT -sV",
+    "default_flags": "-sT -sV -Pn --top-ports 100 -T4",
     "requires_root": false
   },
   "gobuster": {
     "description": "Directory brute-forcing",
     "command": "gobuster",
     "args_template": "dir -u {target} -w {wordlist} {flags}",
-    "default_flags": "-t 50",
+    "default_flags": "-t 5 --timeout 30s -q",
     "default_wordlist": "knowledge/wordlists/common.txt",
     "requires_root": false
   },
@@ -23,9 +23,9 @@
   },
   "httpx": {
     "description": "HTTP probing toolkit",
-    "command": "/opt/homebrew/bin/httpx",
+    "command": "/Users/WIN11/Desktop/Roy-crew/venv/bin/httpx",
     "args_template": "-u {target} {flags}",
-    "default_flags": "-silent -status-code",
+    "default_flags": "-silent -status-code -title -tech-detect",
     "requires_root": false
   }
   ,
@@ -33,7 +33,7 @@
     "description": "Fast web crawler for endpoint discovery",
     "command": "/opt/homebrew/bin/katana",
     "args_template": "-u {target} {flags}",
-    "default_flags": "-d 3 -silent",
+    "default_flags": "-d 2 -silent -timeout 20",
     "requires_root": false
   },
   "nuclei": {

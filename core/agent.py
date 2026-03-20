@@ -245,7 +245,7 @@ Respond ONLY with JSON in this exact format:
         print(f"[Agent] Running katana crawler on {web_target}...")
         result = self._run_tool_with_retry(
             "katana", web_target,
-            flags="-d 3 -silent -jc"   # depth 3, silent, JS crawling enabled
+            flags="-d 2 -silent"
         )
         self.state.completed_tasks.append("katana_crawl")
 

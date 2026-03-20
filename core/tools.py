@@ -41,8 +41,7 @@ class ToolExecutor:
              return None
 
             if tool_name == "nmap":
-                nmap_args = flags or "-sT --top-ports 100"
-                nmap_args = nmap_args.replace("-sV", "").strip()
+                nmap_args = flags or "-sT -sV -Pn --top-ports 100 -T4"
                 return mcp.run_tool(server_name, "do-nmap", {
                     "target": target,
                     "nmap_args": nmap_args
@@ -84,15 +83,6 @@ class ToolExecutor:
                 timeout=300
             )
 
-            if tool_name == "nmap" and (
-                "0 hosts up" in result.stdout or
-                "Host seems down" in result.stdout
-            ):
-                return {
-                    "success": False,
-                    "output": result.stdout,
-                    "error": "Host appears down or blocking probes. Try adding -Pn flag."
-                }
 
             if result.returncode == 0:
                 return {"success": True, "output": result.stdout, "error": ""}
